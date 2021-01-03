@@ -8,6 +8,7 @@
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/bool.hpp>
 #include <boost/mpl/at.hpp>
+#include <tuple>
 
 namespace hana = boost::hana;
 namespace mpl = boost::mpl;
@@ -24,6 +25,10 @@ template <size_t N, class Closure>
 void meta_loop(Closure& closure) {
     is_meta_loop<N, 0>(closure);
 }
+/////
+///
+///
+
 
 template<char A, char B, bool predicat>
 struct EDGE {
@@ -35,8 +40,40 @@ struct EDGE_LIST {
     static constexpr auto value = hana::make_tuple(Edges::value...);
 };
 
+template<typename List>
+struct is_Empty : mpl::false_ {};
+template<>
+struct is_Empty<EDGE_LIST<>> : mpl::true_ {};
+
+//Front
+template<typename List> struct FrontT;
+template<typename Head, typename ... Tail>
+struct FrontT<EDGE_LIST<Head, Tail...>> {
+    using type = Head;
+};
+template<typename List>
+using Front = typename FrontT<List>::type;
+
+//Pop
+template<typename List> struct PopFrontT;
+template<typename Head, typename ... Tail>
+struct PopFrontT<EDGE_LIST<Head, Tail...>> {
+    using type = EDGE_LIST<Tail...>;
+};
+template<typename List>
+using PopFront = typename PopFrontT<List>::type;
+//PushFront
+template<typename List, typename NewElem> struct PushFrontT;
+template<typename... Elements, typename NewElem>
+struct PushFrontT<EDGE_LIST<Elements...>, NewElem> {
+    using type = EDGE_LIST<NewElem, Elements...>;
+};
+template<typename List, typename NewElem>
+using PushFront = typename PushFrontT<List, NewElem>::type;
+
 template<typename List, typename NewElem>
 struct PushBackT;
+
 template<typename... Elements, typename NewElem>
 struct PushBackT<EDGE_LIST<Elements...>, NewElem> {
     using type = EDGE_LIST<Elements..., NewElem>;
@@ -45,14 +82,37 @@ struct PushBackT<EDGE_LIST<Elements...>, NewElem> {
 template<typename List, typename NewElem>
 using PushBack = typename PushBackT<List, NewElem>::type;
 
+template<typename T, typename ...Args>
+struct is_tuple : mpl::false_ {};
+template<typename ...Args>
+struct is_tuple<std::tuple<Args...>> : mpl::true_ {};
+
 template<size_t N, class List>
-struct GRAPH {
-    using type = PushBack<typename GRAPH<N - 1, List>::type, typename mpl::at_c<List, N - 1>::type>;
+struct GRAPH_tuple {
+    using type = PushBack<typename GRAPH_tuple<N - 1, List>::type,
+    typename std::tuple_element_t<N - 1, List>>;
 };
 template<class List>
-struct GRAPH<0, List> {
-    using type = PushBack<EDGE_LIST<>, typename mpl::at_c<List, 0>::type>;
+struct GRAPH_tuple<0, List> {
+    using type = PushBack<EDGE_LIST<>,
+    typename std::tuple_element_t<0, List>>;
 };
+
+template<size_t N, class List>
+struct GRAPH_mpl {
+    using type = PushBack<typename GRAPH_mpl<N - 1, List>::type,
+    typename mpl::at_c<List, N - 1>::type>;
+};
+template<class List>
+struct GRAPH_mpl<0, List> {
+    using type = PushBack<EDGE_LIST<>,
+    typename mpl::at_c<List, 0>::type>;
+};
+
+
+template<size_t N, class List>
+struct GRAPH : mpl::if_c<is_tuple<List>::value, GRAPH_tuple<N, List>,
+               GRAPH_mpl<N, List>>::type {};
 
 //Matrix incede
 
