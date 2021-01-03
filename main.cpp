@@ -18,6 +18,11 @@ using List1 = std::tuple<EDGE<'A', 'A', false>, EDGE<'A', 'B', true>, EDGE<'A', 
                          EDGE<'C', 'C', false>, EDGE<'C', 'D', true>, EDGE<'C', 'A', false>, EDGE<'C', 'B', true>,
                          EDGE<'D', 'D', false>, EDGE<'D', 'A', true>, EDGE<'D', 'B', false>, EDGE<'D', 'C', true>>;
 
+using List2 = fusion::tuple<EDGE<'A', 'A', false>, EDGE<'A', 'B', true>, EDGE<'A', 'C', false>, EDGE<'A', 'D', true>,
+                         EDGE<'B', 'B', false>, EDGE<'B', 'C', true>, EDGE<'B', 'D', false>, EDGE<'B', 'A', true>,
+                         EDGE<'C', 'C', false>, EDGE<'C', 'D', true>, EDGE<'C', 'A', false>, EDGE<'C', 'B', true>,
+                         EDGE<'D', 'D', false>, EDGE<'D', 'A', true>, EDGE<'D', 'B', false>, EDGE<'D', 'C', true>>;
+
 int main()
 {
     std::stringstream out;
@@ -37,6 +42,15 @@ int main()
             out1 << hana::first(hana::first(arg)) <<" <-/-> " << hana::second(hana::first(arg)) <<"\n";
     });
     std::cout << out1.str() << std::endl;
+
+    std::stringstream out2;
+    hana::for_each(GRAPH<N*N, List2>::type::value, [&](auto arg) {
+        if (hana::second(arg))
+            out2 << hana::first(hana::first(arg)) <<" <-> " << hana::second(hana::first(arg)) <<"\n";
+        else
+            out2 << hana::first(hana::first(arg)) <<" <-/-> " << hana::second(hana::first(arg)) <<"\n";
+    });
+    std::cout << out2.str() << std::endl;
 
     bool** matrix = new bool*[N];
     for(size_t i = 0; i < N; ++i)

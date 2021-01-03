@@ -8,10 +8,14 @@
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/bool.hpp>
 #include <boost/mpl/at.hpp>
+#include <boost/fusion/tuple.hpp>
+#include <boost/fusion/include/at.hpp>
+#include <boost/fusion/include/at_c.hpp>
 #include <tuple>
 
 namespace hana = boost::hana;
 namespace mpl = boost::mpl;
+namespace fusion = boost::fusion;
 
 template <size_t N, size_t I, class Closure>
 typename std::enable_if_t<(I == N)> is_meta_loop(Closure& closure) {}
@@ -87,6 +91,11 @@ struct is_tuple : mpl::false_ {};
 template<typename ...Args>
 struct is_tuple<std::tuple<Args...>> : mpl::true_ {};
 
+template<typename T, typename ...Args>
+struct is_fusion_tuple : mpl::false_ {};
+template<typename ...Args>
+struct is_fusion_tuple<fusion::tuple<Args...>> : mpl::true_ {};
+
 template<size_t N, class List>
 struct GRAPH_tuple {
     using type = PushBack<typename GRAPH_tuple<N - 1, List>::type,
@@ -109,10 +118,21 @@ struct GRAPH_mpl<0, List> {
     typename mpl::at_c<List, 0>::type>;
 };
 
+template<size_t N, class List>
+struct GRAPH_fusion {
+    using type = PushBack<typename GRAPH_fusion<N - 1, List>::type,
+    typename std::decay_t<decltype (fusion::get<N - 1>(std::declval<List>()))>>;
+};
+template<class List>
+struct GRAPH_fusion<0, List> {
+    using type = PushBack<EDGE_LIST<>,
+    typename std::decay_t<decltype (fusion::get<0>(std::declval<List>()))>>;
+};
+
 
 template<size_t N, class List>
 struct GRAPH : mpl::if_c<is_tuple<List>::value, GRAPH_tuple<N, List>,
-               GRAPH_mpl<N, List>>::type {};
+               typename mpl::if_c<is_fusion_tuple<List>::value, GRAPH_fusion<N, List>, GRAPH_mpl<N, List>>::type>::type {};
 
 //Matrix incede
 
