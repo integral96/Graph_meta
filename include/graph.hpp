@@ -17,22 +17,6 @@ namespace hana = boost::hana;
 namespace mpl = boost::mpl;
 namespace fusion = boost::fusion;
 
-template <size_t N, size_t I, class Closure>
-typename std::enable_if_t<(I == N)> is_meta_loop(Closure& closure) {}
-
-template <size_t N, size_t I, class Closure>
-typename std::enable_if_t<(I < N)> is_meta_loop(Closure& closure) {
-    closure.template apply<I>();
-    is_meta_loop<N, I + 1>(closure);
-}
-template <size_t N, class Closure>
-void meta_loop(Closure& closure) {
-    is_meta_loop<N, 0>(closure);
-}
-/////
-///
-///
-
 
 template<char A, char B, bool predicat>
 struct EDGE {
@@ -44,10 +28,10 @@ struct EDGE_LIST {
     static constexpr auto value = hana::make_tuple(Edges::value...);
 };
 
-template<typename List>
+template<typename List, typename ... Edges>
 struct is_Empty : mpl::false_ {};
-template<>
-struct is_Empty<EDGE_LIST<>> : mpl::true_ {};
+template<typename ... Edges>
+struct is_Empty<EDGE_LIST<Edges...>> : mpl::true_ {};
 
 //Front
 template<typename List> struct FrontT;
@@ -134,47 +118,41 @@ template<size_t N, class List>
 struct GRAPH : mpl::if_c<is_tuple<List>::value, GRAPH_tuple<N, List>,
                typename mpl::if_c<is_fusion_tuple<List>::value, GRAPH_fusion<N, List>, GRAPH_mpl<N, List>>::type>::type {};
 
-//Matrix incede
+//Sortirovka
 
 
-template<size_t I, size_t J, size_t N, class List>
-struct MATRIX_INC {
-    using T = typename mpl::at_c<List, I*N + J>::type;
-};
+template<typename List, typename Elem, template<typename T1, typename T2> class Compare, bool = is_Empty<List>::value>
+struct InsertSortedT;
 
-template <size_t I, size_t N, typename List, typename Matrix>
-struct INIT_MEMBER {
+template<typename List, typename Elem, template<typename T1, typename T2> class Compare>
+struct InsertSortedT<List, Elem, Compare, false> {
 private:
-    Matrix& C;
+    using New_Tail = typename mpl::if_c<Compare<Elem, Front<List>>::value, mpl::identity<List>,
+                              InsertSortedT<PopFront<List>, Elem, Compare>>::type;
+    using New_Head = typename mpl::if_c<Compare<Elem, Front<List>>::value, Elem, Front<List>>;
 public:
-    INIT_MEMBER(Matrix& C): C(C) {}
-    template<size_t J>
-    void apply() const {
-        using loop_type = MATRIX_INC<I, J, N - 1, List>;
-        constexpr auto a = hana::first(loop_type::T::value);
-        constexpr auto b = hana::second(loop_type::T::value);
-            C[I][J] = b;
-    }
+    using type = PushFront<New_Tail, New_Head>;
 };
+template<typename List, typename Elem, template<typename T1, typename T2> class Compare>
+struct InsertSortedT<List, Elem, Compare, true> : PushFrontT<List, Elem> {};
 
-template <size_t N, typename List, typename Matrix>
-struct INIT_MATRIX_1
-{
-private:
-    Matrix& C;
-public:
-    INIT_MATRIX_1(Matrix& C): C(C) {}
-    template <size_t I>
-    void apply() {
-        INIT_MEMBER<I, N, List, Matrix> closure(C);
-        meta_loop<N>(closure);
-    }
+template<typename List, typename Elem, template<typename T1, typename T2> class Compare>
+using InsertSorted = typename InsertSortedT<List, Elem, Compare>::type;
+
+template<typename List, template<typename T1, typename T2> class Compare, bool = is_Empty<List>::value>
+struct InsertionSortT;
+
+template<typename List, template<typename T1, typename T2> class Compare>
+using InsertionSort = typename InsertionSortT<List, Compare>::type;
+
+template<typename List, template<typename T1, typename T2> class Compare>
+struct InsertionSortT<List, Compare, false> : InsertSortedT<InsertionSort<PopFront<List>, Compare>,
+                                              Front<List>, Compare> {};
+
+template<typename List, template<typename T1, typename T2> class Compare>
+struct InsertionSortT<List, Compare, true> {
+    using type = List;
 };
-template <size_t N, typename List, typename Matrix>
-inline void calc_matrix(Matrix& C) {
-    INIT_MATRIX_1<N, List, Matrix> closure(C);
-    meta_loop<N>(closure);
-}
 
 #endif // GRAPH_HPP
 
