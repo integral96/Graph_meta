@@ -17,15 +17,23 @@ namespace hana = boost::hana;
 namespace mpl = boost::mpl;
 namespace fusion = boost::fusion;
 
-
-template<char A, char B, bool predicat>
-struct EDGE {
-    static constexpr auto value = hana::make_pair(hana::make_pair(A, B), predicat);
+template<char A, bool path, char B>
+struct forward {
+    static constexpr auto value = hana::make_tuple(A, path, B);
 };
+template<char B, bool path, char A>
+struct back {
+    static constexpr auto value = hana::make_tuple(B, path, A);
+};
+
+template<char A, bool pathA, char B, bool pathB>
+struct EDGE : mpl::if_c<(A != B), mpl::vector2<forward<A, pathA, B>, back<B, pathB, A>>,
+                        mpl::vector2<forward<A, pathA, B>, back<B, pathA, A>>>::type {};
 
 template<typename ... Edges>
 struct EDGE_LIST {
-    static constexpr auto value = hana::make_tuple(Edges::value...);
+    static constexpr auto value = hana::make_tuple(hana::make_pair(mpl::at_c<Edges, 0>::type::value,
+                                                                   mpl::at_c<Edges, 1>::type::value)...);
 };
 
 template<typename List, typename ... Edges>
