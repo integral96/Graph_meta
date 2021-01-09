@@ -5,6 +5,7 @@
 #include <array>
 
 #include "include/graph.hpp"
+#include "include/matrix.hpp"
 
 static constexpr size_t N = 10;
 
@@ -30,27 +31,48 @@ using SortList2 = InsertionSort<GRAPH<N, List2>::type, SmallThenT>;
 
 int main()
 {
+
+    std::vector<bool> vec;
+
     std::stringstream out;
     hana::for_each(SortList0::value, [&](auto arg) {
-        if (hana::at_c<1>(hana::first(arg)))
+        if (hana::at_c<1>(hana::first(arg))) {
             out << hana::at_c<0>(hana::first(arg)) <<" <-> " << hana::at_c<2>(hana::first(arg)) <<"\n";
-        else
+        } else {
             out << hana::at_c<0>(hana::first(arg)) <<" <-/-> " << hana::at_c<2>(hana::first(arg)) <<"\n";
-        if (hana::at_c<1>(hana::second(arg)))
+        }
+        if (hana::at_c<1>(hana::second(arg))) {
             out << hana::at_c<0>(hana::second(arg)) <<" <-> " << hana::at_c<2>(hana::second(arg)) <<"\n";
-        else
+        } else {
             out << hana::at_c<0>(hana::second(arg)) <<" <-/-> " << hana::at_c<2>(hana::second(arg)) <<"\n";
+        }
+        vec.push_back(hana::at_c<1>(hana::first(arg)));
+        vec.push_back(hana::at_c<1>(hana::second(arg)));
     });
     std::cout << out.str() << std::endl;
-
-    std::vector<std::pair<bool, bool>> vec;
-
-    hana::for_each(SortList0::value, [&](auto arg) mutable {
-        vec.push_back(std::make_pair(hana::at_c<1>(hana::first(arg)), hana::at_c<1>(hana::second(arg))));
-    });
     vec.erase(vec.begin());
-    for(const auto& [x, y] : vec) {
-        std::cout << "(" << x << "; " << y <<")\n";
+    vec.erase(vec.begin());
+    matrix_2<4, 4> mtx;
+    for(const auto& x : vec) {
+        std::cout << "(" << x << "; " << ")\n";
     }
+    std::copy(vec.begin(), vec.end(), mtx.end()->begin());
+
+
+
+    matrix_2<4, 3> mtrx{{1,2,3}, {1,2,3}, {4,2,2}, {4,2,2}};
+    matrix_2<3, 4> mtrx1{{1,2,3,4}, {1,2,3,6}, {1,4,2,2}};
+////    mtrx.fill(2);
+    std::cout << mtx << std::endl;
+    std::cout << mtrx1 << std::endl;
+    std::cout << mtrx*mtrx1 << std::endl;
+
+//    matrix_3<4, 3, 2, int> matrx3d;
+//    gen_rand_matrix(matrx3d, 1,5);
+//    std::cout << matrx3d << std::endl;
+
+//    matrix_4<4, 3, 2, 5, int> matrx4d;
+//    gen_rand_matrix(matrx4d, 1,5);
+//    std::cout << matrx4d << std::endl;
     return 0;
 }
