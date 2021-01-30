@@ -1,18 +1,18 @@
-#ifndef MATRIX_HPP
-#define MATRIX_HPP
+#pragma once
 
-#include "include/base_func.hpp"
+#include "base_func.hpp"
 
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
 #include <array>
 #include <variant>
+#include <random>
 
 #include <boost/type_traits/enable_if.hpp>
 #include <boost/multi_array.hpp>
 #include <boost/mpl/bool.hpp>
-#include <boost/random.hpp>
+//#include <boost/random.hpp>
 #include <boost/any.hpp>
 #include <boost/hana.hpp>
 #include <boost/proto/proto.hpp>
@@ -79,7 +79,7 @@ struct MatrixExpr : proto::extends<Expr, MatrixExpr<Expr>, MatrixDomain> {
 
 
 
-/// is vector for multiply vfnrbx on vector
+// is vector for multiply vfnrbx on vector
 template <typename F, size_t N, typename Vector>
 struct is_vector : boost::mpl::false_ {};
 template <typename F, size_t N>
@@ -105,7 +105,8 @@ template<> struct is_complex_i<std::complex<int>> : boost::mpl::true_ {};
 ///
 ///
 
-typedef std::variant<char, bool, int, double> type_T;
+//typedef std::variant<char, bool, int, double> type_T;
+typedef int type_T;
 template<size_t N, size_t M>
 using Matrix2D_Type = std::array<std::array<type_T, M>, N>;
 
@@ -120,7 +121,7 @@ struct matrix_2 : public Matrix2D_Type<N, M> {
     typedef type_T value_type;
     type MTRX;
 public:
-    constexpr matrix_2() : MTRX() {}
+    matrix_2() : MTRX() {}
 
     matrix_2(std::initializer_list<std::initializer_list<value_type>> listlist) : MTRX() {
         auto rows = listlist.size();
@@ -135,24 +136,24 @@ public:
         for (size_t i = 0; i < N; ++i)
             for (size_t j = 0; j < M; ++j) MTRX[i][j] = x;
     }
-    constexpr matrix_2<N, M>& identity_matrix() {
+    matrix_2<N, M>& identity_matrix() {
         calc_identity_matrix(*this);
         return *this;
     }
-    constexpr void three_diag_matrix(value_type alpha) {
+    void three_diag_matrix(value_type alpha) {
         calc_three_diag_matrix(*this, alpha);
     }
-    constexpr type_T& operator () (size_t i, size_t j) {
+    type_T& operator () (size_t i, size_t j) {
         return MTRX[i][j];
     }
-    constexpr type_T const& operator () (size_t i, size_t j) const {
+    type_T const& operator () (size_t i, size_t j) const {
         return MTRX[i][j];
     }
 
-    constexpr type_T& at (size_t i, size_t j) {
+    type_T& at (size_t i, size_t j) {
         return MTRX[i][j];
     }
-    constexpr matrix_2<N, M>& operator = (matrix_2<N, M> const& other) {
+    matrix_2<N, M>& operator = (matrix_2<N, M> const& other) {
         MTRX = other.MTRX;
         return *this;
     }
@@ -166,36 +167,36 @@ public:
         }
         return *this;
     }
-    friend constexpr matrix_2<N, M> operator - (const matrix_2<N, M>& other1, const matrix_2<N, M>& other2) {
+    friend matrix_2<N, M> operator - (const matrix_2<N, M>& other1, const matrix_2<N, M>& other2) {
         BOOST_STATIC_ASSERT(N == M);
         matrix_2<N, M> tmp;
         calc_minus_matrix(tmp, other1, other2);
         return tmp;
     }
-    friend constexpr matrix_2<N, M> operator + (const matrix_2<N, M>& other1, const matrix_2<N, M>& other2) {
+    friend matrix_2<N, M> operator + (const matrix_2<N, M>& other1, const matrix_2<N, M>& other2) {
         BOOST_STATIC_ASSERT(N == M);
         matrix_2<N, M> tmp;
         calc_plus_matrix(tmp, other1, other2);
         return tmp;
     }
-    friend constexpr matrix_2<N, N> operator * (const matrix_2<N, M>& other1, const matrix_2<M, N>& other2) {
+    friend matrix_2<N, N> operator * (const matrix_2<N, M>& other1, const matrix_2<M, N>& other2) {
         matrix_2<N, N> tmp;
         calc_multy_matrix(tmp, other1, other2);
         return tmp;
     }
     template<class Vector>
-    friend constexpr std::enable_if_t<(is_vector<type_T, N, Vector>::value), Vector> operator * (const matrix_2<N, M>& other1, const Vector& vector) {
+    friend std::enable_if_t<(is_vector<type_T, N, Vector>::value), Vector> operator * (const matrix_2<N, M>& other1, const Vector& vector) {
         Vector tmp;
         calc_multy_vector(tmp, other1, vector);
         return tmp;
     }
     template<typename F>
-    friend constexpr std::enable_if_t<std::is_convertible<type_T, F>::value, matrix_2<N, M>> operator / (matrix_2<N, M>& other1, const F scalar) {
+    friend std::enable_if_t<std::is_convertible<type_T, F>::value, matrix_2<N, M>> operator / (matrix_2<N, M>& other1, const F scalar) {
         calc_divide_on_scalar(other1, scalar);
         return other1;
     }
     template<typename F>
-    friend constexpr std::enable_if_t<std::is_convertible<type_T, F>::value, matrix_2<N, M>> operator * (matrix_2<N, M>& other1, const F scalar) {
+    friend std::enable_if_t<std::is_convertible<type_T, F>::value, matrix_2<N, M>> operator * (matrix_2<N, M>& other1, const F scalar) {
         calc_multiply_on_scalar(other1, scalar);
         return other1;
     }
@@ -212,9 +213,10 @@ public:
     friend std::ostream& operator << (std::ostream& os, const matrix_2<N, M>& A){
         for (size_t i = 0; i < N; ++i) {
             for (size_t j = 0; j < M; ++j) {
-                std::visit([&](auto&& arg) {
-                    os << arg << "\t";
-                }, A.MTRX[i][j]);
+//                std::visit([&](auto&& arg) {
+//                    os << arg << "\t";
+//                },
+                os << A.MTRX[i][j]<< "\t";
             }
             os << std::endl;
         }
@@ -241,7 +243,7 @@ struct matrix_3 : public Matrix3D_Type<N, M, K, T> {
 private:
     super MTRX;
 public:
-    constexpr matrix_3() : MTRX() {}
+    matrix_3() : MTRX() {}
 
     iterator begin() {
         return MTRX.begin();
@@ -255,13 +257,13 @@ public:
     constant_iterator cend() {
         return MTRX.cend();
     }
-    constexpr T& operator () (size_t i, size_t j, size_t k) {
+    T& operator () (size_t i, size_t j, size_t k) {
         return MTRX[i][j][k];
     }
-    constexpr T const& operator () (size_t i, size_t j, size_t k) const {
+    T const& operator () (size_t i, size_t j, size_t k) const {
         return MTRX[i][j][k];
     }
-    constexpr T& at (size_t i, size_t j, size_t k) {
+    T& at (size_t i, size_t j, size_t k) {
         return MTRX[i][j][k];
     }
     matrix_3<N, M, K, T>& operator = (matrix_3<N, M, K, T> const& other) {
@@ -318,13 +320,13 @@ public:
     constant_iterator cend() {
         return MTRX.cend();
     }
-    constexpr T& operator () (size_t i, size_t j, size_t k, size_t l) {
+    T& operator () (size_t i, size_t j, size_t k, size_t l) {
         return MTRX[i][j][k][l];
     }
-    constexpr T const& operator () (size_t i, size_t j, size_t k, size_t l) const {
+    T const& operator () (size_t i, size_t j, size_t k, size_t l) const {
         return MTRX[i][j][k][l];
     }
-    constexpr T& at (size_t i, size_t j, size_t k, size_t l) {
+    T& at (size_t i, size_t j, size_t k, size_t l) {
         return MTRX[i][j][k][l];
     }
     matrix_4<N, M, K, L, T>& operator = (matrix_4<N, M, K, L, T> const& other) {
@@ -348,9 +350,9 @@ public:
 template<typename T, typename Matrix, typename = boost::enable_if_t<(Matrix::dimension > 0)>>
 inline void gen_rand_matrix(Matrix& A, T min, T max) {
     std::time_t now = std::time(0);
-    boost::random::mt19937 gen{static_cast<std::uint32_t>(now)};
+    std::mt19937 gen{static_cast<std::uint32_t>(now)};
         if constexpr(Matrix::dimension == 4 && is_int<T>::value) {
-            boost::random::uniform_int_distribution<> dist{min, max};
+            std::uniform_int_distribution<> dist{min, max};
             for(size_t i = 0; i < Matrix::row; ++i)
                 for(size_t j = 0; j < Matrix::col; ++j)
                     for(size_t k = 0; k < Matrix::lin; ++k)
@@ -358,7 +360,7 @@ inline void gen_rand_matrix(Matrix& A, T min, T max) {
                             A(i, j, k, l) = dist(gen);
         }
         if constexpr(Matrix::dimension == 4 && !is_int<T>::value) {
-            boost::random::uniform_real_distribution<> dist{min, max};
+            std::uniform_real_distribution<> dist{min, max};
             for(size_t i = 0; i < Matrix::row; ++i)
                 for(size_t j = 0; j < Matrix::col; ++j)
                     for(size_t k = 0; k < Matrix::lin; ++k)
@@ -366,27 +368,27 @@ inline void gen_rand_matrix(Matrix& A, T min, T max) {
                             A(i, j, k, l) = dist(gen);
         }
         if constexpr(Matrix::dimension == 3 && is_int<T>::value) {
-            boost::random::uniform_int_distribution<> dist{min, max};
+            std::uniform_int_distribution<> dist{min, max};
             for(size_t i = 0; i < Matrix::row; ++i)
                 for(size_t j = 0; j < Matrix::col; ++j)
                     for(size_t k = 0; k < Matrix::lin; ++k)
                         A(i, j, k) = dist(gen);
         }
         if constexpr(Matrix::dimension == 3 && !is_int<T>::value) {
-            boost::random::uniform_real_distribution<> dist{min, max};
+            std::uniform_real_distribution<> dist{min, max};
             for(size_t i = 0; i < Matrix::row; ++i)
                 for(size_t j = 0; j < Matrix::col; ++j)
                     for(size_t k = 0; k < Matrix::lin; ++k)
                         A(i, j, k) = dist(gen);
         }
         if constexpr(Matrix::dimension == 2 && is_int<T>::value) {
-            boost::random::uniform_int_distribution<> dist{min, max};
+            std::uniform_int_distribution<> dist{min, max};
             for(size_t i = 0; i < Matrix::row; ++i)
                 for(size_t j = 0; j < Matrix::col; ++j)
                         A(i, j) = dist(gen);
         }
         if constexpr(Matrix::dimension == 2 && !is_int<T>::value) {
-            boost::random::uniform_real_distribution<> dist{min, max};
+            std::uniform_real_distribution<> dist{min, max};
             for(size_t i = 0; i < Matrix::row; ++i)
                 for(size_t j = 0; j < Matrix::col; ++j)
                         A(i, j) = dist(gen);
@@ -981,4 +983,3 @@ void calc_three_diag_matrix(Matrix& RESULT, typename Matrix::value_type alpha) {
     meta_loop<Matrix::col>(closure);
 }
 
-#endif // MATRIX_HPP
