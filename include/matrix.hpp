@@ -38,6 +38,7 @@ struct MatrixGrammar : proto::or_<
         proto::plus<MatrixGrammar, MatrixGrammar>,
         proto::minus<MatrixGrammar, MatrixGrammar>,
         proto::multiplies<MatrixGrammar, MatrixGrammar>
+
         >
 {};
 template<typename Expr>
@@ -105,20 +106,18 @@ template<> struct is_complex_i<std::complex<int>> : boost::mpl::true_ {};
 ///
 ///
 
-//typedef std::variant<char, bool, int, double> type_T;
-typedef int type_T;
-template<size_t N, size_t M>
-using Matrix2D_Type = std::array<std::array<type_T, M>, N>;
+template<size_t N, size_t M, typename T>
+using Matrix2D_Type = std::array<std::array<T, M>, N>;
 
-template<size_t N, size_t M>
-struct matrix_2 : public Matrix2D_Type<N, M> {
+template<size_t N, size_t M, typename T>
+struct matrix_2 : public Matrix2D_Type<N, M, T> {
     static constexpr size_t dimension = 2;
     static constexpr size_t row = N;
     static constexpr size_t col = M;
-    typedef Matrix2D_Type<N, M> type;
+    typedef Matrix2D_Type<N, M, T> type;
     typedef typename type::iterator iterator;
     typedef typename type::const_iterator  constant_iterator;
-    typedef type_T value_type;
+    typedef T value_type;
     type MTRX;
 public:
     matrix_2() : MTRX() {}
@@ -136,29 +135,29 @@ public:
         for (size_t i = 0; i < N; ++i)
             for (size_t j = 0; j < M; ++j) MTRX[i][j] = x;
     }
-    matrix_2<N, M>& identity_matrix() {
+    matrix_2<N, M, T>& identity_matrix() {
         calc_identity_matrix(*this);
         return *this;
     }
     void three_diag_matrix(value_type alpha) {
         calc_three_diag_matrix(*this, alpha);
     }
-    type_T& operator () (size_t i, size_t j) {
+    T& operator () (size_t i, size_t j) {
         return MTRX[i][j];
     }
-    type_T const& operator () (size_t i, size_t j) const {
+    T const& operator () (size_t i, size_t j) const {
         return MTRX[i][j];
     }
 
-    type_T& at (size_t i, size_t j) {
+    T& at (size_t i, size_t j) {
         return MTRX[i][j];
     }
-    matrix_2<N, M>& operator = (matrix_2<N, M> const& other) {
+    matrix_2<N, M, T>& operator = (matrix_2<N, M, T> const& other) {
         MTRX = other.MTRX;
         return *this;
     }
     template<typename Expr>
-    matrix_2<N, M>& operator = ( const Expr& expr ) {
+    matrix_2<N, M, T>& operator = ( const Expr& expr ) {
         for(int i = 0; i < N; ++i) {
             for(int j = 0; j < M; ++j) {
                 const SubscriptCntxt ctx(i, j);
@@ -167,50 +166,50 @@ public:
         }
         return *this;
     }
-    friend matrix_2<N, M> operator - (const matrix_2<N, M>& other1, const matrix_2<N, M>& other2) {
+    friend matrix_2<N, M, T> operator - (const matrix_2<N, M, T>& other1, const matrix_2<N, M, T>& other2) {
         BOOST_STATIC_ASSERT(N == M);
-        matrix_2<N, M> tmp;
+        matrix_2<N, M, T> tmp;
         calc_minus_matrix(tmp, other1, other2);
         return tmp;
     }
-    friend matrix_2<N, M> operator + (const matrix_2<N, M>& other1, const matrix_2<N, M>& other2) {
+    friend matrix_2<N, M, T> operator + (const matrix_2<N, M, T>& other1, const matrix_2<N, M, T>& other2) {
         BOOST_STATIC_ASSERT(N == M);
-        matrix_2<N, M> tmp;
+        matrix_2<N, M, T> tmp;
         calc_plus_matrix(tmp, other1, other2);
         return tmp;
     }
-    friend matrix_2<N, N> operator * (const matrix_2<N, M>& other1, const matrix_2<M, N>& other2) {
-        matrix_2<N, N> tmp;
+    friend matrix_2<N, N, T> operator * (const matrix_2<N, M, T>& other1, const matrix_2<M, N, T>& other2) {
+        matrix_2<N, N, T> tmp;
         calc_multy_matrix(tmp, other1, other2);
         return tmp;
     }
     template<class Vector>
-    friend std::enable_if_t<(is_vector<type_T, N, Vector>::value), Vector> operator * (const matrix_2<N, M>& other1, const Vector& vector) {
+    friend std::enable_if_t<(is_vector<T, N, Vector>::value), Vector> operator * (const matrix_2<N, M, T>& other1, const Vector& vector) {
         Vector tmp;
         calc_multy_vector(tmp, other1, vector);
         return tmp;
     }
     template<typename F>
-    friend std::enable_if_t<std::is_convertible<type_T, F>::value, matrix_2<N, M>> operator / (matrix_2<N, M>& other1, const F scalar) {
+    friend std::enable_if_t<std::is_convertible<T, F>::value, matrix_2<N, M, T>> operator / (matrix_2<N, M, T>& other1, const F scalar) {
         calc_divide_on_scalar(other1, scalar);
         return other1;
     }
     template<typename F>
-    friend std::enable_if_t<std::is_convertible<type_T, F>::value, matrix_2<N, M>> operator * (matrix_2<N, M>& other1, const F scalar) {
+    friend std::enable_if_t<std::is_convertible<T, F>::value, matrix_2<N, M, T>> operator * (matrix_2<N, M, T>& other1, const F scalar) {
         calc_multiply_on_scalar(other1, scalar);
         return other1;
     }
-    constexpr matrix_2<N, M> operator ^(const matrix_2<N, M>& ORIG) { ///Invers matrix
+    matrix_2<N, M, T> operator ^(const matrix_2<N, M, T>& ORIG) { ///Invers matrix
         BOOST_STATIC_ASSERT(N == M);
-        matrix_2<N, M> RESULT;
-        matrix_2<N, 2*M> TMP;
+        matrix_2<N, M, T> RESULT;
+        matrix_2<N, 2*M, T> TMP;
         calc_multy_2N(TMP, ORIG);
         calc_invers_tmp_matrix(TMP);
         calc_invers_matrix(TMP);
         calc_multy_toN(RESULT, TMP);
         return RESULT;
     }
-    friend std::ostream& operator << (std::ostream& os, const matrix_2<N, M>& A){
+    friend std::ostream& operator << (std::ostream& os, const matrix_2<N, M, T>& A){
         for (size_t i = 0; i < N; ++i) {
             for (size_t j = 0; j < M; ++j) {
 //                std::visit([&](auto&& arg) {
@@ -983,3 +982,4 @@ void calc_three_diag_matrix(Matrix& RESULT, typename Matrix::value_type alpha) {
     meta_loop<Matrix::col>(closure);
 }
 
+//#endif // MATRIX_HPP
