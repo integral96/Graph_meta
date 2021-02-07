@@ -66,6 +66,10 @@ template <size_t N, class Closure>
 void meta_loopUV(Closure& closure) {
     is_meta_loop<N, 1>(closure);
 }
+template <size_t N, size_t K, class Closure>
+void meta_loop_KN(Closure& closure) {
+    is_meta_loop<N, K>(closure);
+}
 ///++
 
 /////Calculate Binom

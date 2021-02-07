@@ -12,7 +12,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 file(GLOB SOURCES
     include/*.hpp
     *.cpp)
-find_package(Boost 1.75.0 COMPONENTS context coroutine date_time timer thread system program_options regex)
+find_package(Boost 1.75.0 COMPONENTS context date_time timer thread system program_options regex)
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 

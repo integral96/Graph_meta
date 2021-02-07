@@ -6,6 +6,7 @@
 
 #include "include/graph.hpp"
 #include "include/matrix.hpp"
+#include "include/lagrange_group.hpp"
 
 static constexpr size_t N = 10;
 
@@ -74,10 +75,10 @@ int main()
 //    std::cout << mtrx1 << std::endl;
 //    std::cout << mtrx*mtrx1 << std::endl;
 //    auto res = mtrx*mtrx1;
-    matrix_2<12, 12, double> BB;
+    matrix_2<8, 8, double> BB;
     gen_rand_matrix(BB, 1.1, 50.5);
     std::cout << BB << std::endl;
-    std::cout << (BB^BB) << std::endl;
+    std::cout << BB*(BB^BB) << std::endl;
 
 //    matrix_3<4, 3, 2, int> matrx3d;
 //    gen_rand_matrix(matrx3d, 1,5);
@@ -86,5 +87,32 @@ int main()
 //    matrix_4<4, 3, 2, 5, int> matrx4d;
 //    gen_rand_matrix(matrx4d, 1,5);
 //    std::cout << matrx4d << std::endl;
+    boost::shared_array<double> x( new double[5]);
+    x[0] = 1;
+    x[1] = 3;
+    x[2] = 5;
+    x[3] = 7;
+    x[4] = 9;
+
+    boost::shared_array<double> y( new double[5]);
+    y[0] = 0;
+    y[1] = 2;
+    y[2] = -1;
+    y[3] = 1;
+    y[4] = 3;
+    boost::shared_array<double> res( new double[5]);
+    boost::shared_array<double> res2( new double[5]);
+
+    LAGRANGE_RESULT<5>(x, 0., y, res);
+    for(size_t i = 0; i < 5; ++i) {
+        std::cout << x[i] << "\t| " << res[i] << std::endl;
+    }
+    std::cout << "=====================" << std::endl;
+    double dx = 1;
+//    for(size_t i = 0; i < 5; ++i) x[i] += dx;
+    LAGRANGE_RESULT<5>(x, dx, y, res2);
+    for(size_t i = 0; i < 5; ++i) {
+        std::cout << x[i] << "\t| " << res2[i] << std::endl;
+    }
     return 0;
 }

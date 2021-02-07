@@ -8,6 +8,7 @@
 #include <array>
 #include <variant>
 #include <random>
+#include <cmath>
 
 #include <boost/type_traits/enable_if.hpp>
 #include <boost/multi_array.hpp>
@@ -215,7 +216,7 @@ public:
 //                std::visit([&](auto&& arg) {
 //                    os << arg << "\t";
 //                },
-                os << A.MTRX[i][j]<< "\t";
+                os << std::round(A.MTRX[i][j]*10000)/10000<< "\t";
             }
             os << std::endl;
         }
