@@ -123,6 +123,26 @@ typename Closure::value_type abstract_subtract(Closure &closure) {
     meta_loop<N>(my_closure);
     return my_closure.result;
 }
+/*!
+ * struct abstract_mult
+ */
+template<class Closure>
+struct abstract_multiple_closures {
+    using value_type = typename Closure::value_type;
+    abstract_multiple_closures(Closure &closure) : closure(closure), result(value_type(1)){}
+    template<size_t I>
+    void apply(){
+        result *= closure.template value<I>();
+    }
+    Closure &closure;
+    value_type result;
+};
+template<size_t K, class Closure>
+typename Closure::value_type abstract_multiple(Closure &closure) {
+    abstract_multiple_closures<Closure> my_closure(closure);
+    meta_loop<K>(my_closure);
+    return my_closure.result;
+}
 
 /*!
  * struct abstract_divide
@@ -130,7 +150,7 @@ typename Closure::value_type abstract_subtract(Closure &closure) {
 template<class Closure>
 struct abstract_divide_closures {
     typedef typename Closure::value_type value_type;
-    abstract_divide_closures(Closure &closure) :  closure(closure), result(value_type()){}
+    abstract_divide_closures(Closure &closure) :  closure(closure), result(value_type(1)){}
 
     template<unsigned I>
     void apply(){
