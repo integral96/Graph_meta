@@ -7,6 +7,7 @@
 #include "include/graph.hpp"
 #include "include/matrix.hpp"
 #include "include/lagrange_group.hpp"
+#include "include/lib.h"
 
 static constexpr size_t N = 10;
 
@@ -32,6 +33,7 @@ using SortList2 = InsertionSort<GRAPH<N, List2>::type, SmallThenT>;
 
 int main()
 {
+    std::cout << "build: " << version() <<std::endl;
 
 //    std::vector<bool> vec;
 //

@@ -1,6 +1,8 @@
-#include "lib.h"
+#include "include/lib.h"
 
-lib::lib()
+#include "include/version.h"
+
+const char* version()
 {
-
+    return PROJECT_VERSION_PATCH ;
 }
