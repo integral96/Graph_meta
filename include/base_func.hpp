@@ -1,5 +1,4 @@
-#ifndef BASE_FUNC_HPP
-#define BASE_FUNC_HPP
+#pragma once
 
 #include <boost/mpl/bool.hpp>
 #include <boost/mpl/at.hpp>
@@ -167,4 +166,3 @@ typename Closure::value_type abstract_divide(Closure &closure) {
     return my_closure.result;
 }
 
-#endif // BASE_FUNC_HPP

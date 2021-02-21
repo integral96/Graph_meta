@@ -8,7 +8,39 @@
 #include "include/matrix.hpp"
 #include "include/lagrange_group.hpp"
 #include "include/lib.h"
+#include "include/simvolic_diff.hpp"
 
+////Simvolic
+constexpr auto A = hana::make_set(hana::int_c<1>, hana::int_c<3>, hana::int_c<5>, hana::int_c<7>);
+constexpr auto B = hana::make_set(hana::int_c<2>, hana::int_c<4>, hana::int_c<6>);
+
+constexpr auto U = hana::union_(A, B);
+
+constexpr auto result = hana::unpack(U, [](auto... x){
+    return hana::make_set(hana::make_pair(9 - x, hana::max(x, 9 - x) == x ? x : 0)...);
+});
+constexpr auto result1 = hana::unpack(U, [](auto... x){
+    return hana::make_tuple(hana::make_pair(x,  8 - x)...);
+});
+
+using type_A = mpl::vector4_c<int, 1, 3, 5, 7>;
+using type_B = mpl::vector3_c<int, 2, 4, 6>;
+
+template<int N, int M>
+struct pair {
+
+    static constexpr int first = mpl::at_c<type_A, N>::type::value;
+    static constexpr int second = mpl::at_c<type_B, M>::type::value;
+};
+
+template<int N, int M>
+struct U_st : mpl::if_c<(mpl::plus<typename mpl::at_c<type_A, N>::type, typename mpl::at_c<type_B, M>::type>::type::value == 9),
+                        pair<N, M>, mpl::na>::type {
+
+};
+auto result2 = hana::sort(result1, hana::less);
+
+///Graph
 static constexpr size_t N = 10;
 
 using List = mpl::vector<EDGE<'A', false, 'A', false>, EDGE<'A', true, 'B', true>,   EDGE<'A', false, 'C', false>, EDGE<'A', true, 'D', true>,
@@ -31,52 +63,52 @@ using SortList0 = InsertionSort<GRAPH<N, List>::type, SmallThenT>;
 using SortList1 = InsertionSort<GRAPH<N, List1>::type, SmallThenT>;
 using SortList2 = InsertionSort<GRAPH<N, List2>::type, SmallThenT>;
 
+///Simvolic classic
+///
+#define eps 0.000001
+
+static auto fx_([](auto x) ->double { // вычисляемая функция
+    return x*x + x;
+});
+static auto dfx_([](auto x) ->double { // производная функции
+    return 2*x + 1;
+});
+
+template<class Func1, class Func2>
+auto solve_(const Func1& fx, const Func2& dfx, double x0) {
+    double x1  = x0 - fx(x0)/dfx(x0); // первое приближение
+
+    while (std::abs(x1-x0)>eps) { // пока не достигнута точность 0.000001
+      x0 = x1;
+      x1 = x0 - fx(x0)/dfx(x0); // последующие приближения
+    }
+    return x1;
+}
+
 int main()
 {
     std::cout << "build: " << version() <<std::endl;
 
-//    std::vector<bool> vec;
-//
-////    std::stringstream out;
-//    hana::for_each(SortList0::value, [&](auto arg) {
-//        if (hana::at_c<1>(hana::first(arg))) {
-//            std::cout << hana::at_c<0>(hana::first(arg)) <<" <-> " << hana::at_c<2>(hana::first(arg)) <<"\n";
-//        } else {
-//            std::cout << hana::at_c<0>(hana::first(arg)) <<" <-/-> " << hana::at_c<2>(hana::first(arg)) <<"\n";
-//        }
-//        if (hana::at_c<1>(hana::second(arg))) {
-//            std::cout << hana::at_c<0>(hana::second(arg)) <<" <-> " << hana::at_c<2>(hana::second(arg)) <<"\n";
-//        } else {
-//            std::cout << hana::at_c<0>(hana::second(arg)) <<" <-/-> " << hana::at_c<2>(hana::second(arg)) <<"\n";
-//        }
-//        vec.push_back(hana::at_c<1>(hana::first(arg)));
-//        vec.push_back(hana::at_c<1>(hana::second(arg)));
-//    });
-//    std::cout << out.str() << std::endl;
-//    vec.erase(vec.begin());
-//    vec.erase(vec.begin());
-//    matrix_2<4, 4> mtx;
-//    for(const auto& x : vec) {
-//        std::cout << "(" << x << "; " << ")\n";
-//    }
-//    std::copy(vec.begin(), vec.end(), mtx.end()->begin());
+    hana::for_each(SortList0::value, [&](auto arg) {
+        if (hana::at_c<1>(hana::first(arg))) {
+            std::cout << hana::at_c<0>(hana::first(arg)) <<" <-> " << hana::at_c<2>(hana::first(arg)) <<"\n";
+        } else {
+            std::cout << hana::at_c<0>(hana::first(arg)) <<" <-/-> " << hana::at_c<2>(hana::first(arg)) <<"\n";
+        }
+        if (hana::at_c<1>(hana::second(arg))) {
+            std::cout << hana::at_c<0>(hana::second(arg)) <<" <-> " << hana::at_c<2>(hana::second(arg)) <<"\n";
+        } else {
+            std::cout << hana::at_c<0>(hana::second(arg)) <<" <-/-> " << hana::at_c<2>(hana::second(arg)) <<"\n";
+        }
+    });
 
 
+    matrix_2<4, 3, int> mtrx{{1,2,3}, {1,2,3}, {4,2,2}, {4,2,2}};
+    matrix_2<3, 4, int> mtrx1{{1,2,3,4}, {1,2,3,6}, {1,4,2,2}};
 
-//    matrix_2<4, 3, int> mtrx{{1,2,3}, {1,2,3}, {4,2,2}, {4,2,2}};
-//    matrix_2<3, 4, int> mtrx1{{1,2,3,4}, {1,2,3,6}, {1,4,2,2}};
-//    matrix_2<4, 4, int> AA{{1,2,3,4}, {1,2,3,6}, {1,4,2,2}, {1,4,2,2}};
-
-//    matrix_2<5, 5, double> AA{{1, 2, 3, 4,-2},
-//                                {-5, 5, 7, 8, 4},
-//                                {9, 10, -11, 12, 1},
-//                                {13, -14, -15, 0, 9},
-//                                {20, -26, 16, -17, 25}};
-////    mtrx.fill(2);
-//    std::cout << mtx << std::endl;
-//    std::cout << mtrx1 << std::endl;
-//    std::cout << mtrx*mtrx1 << std::endl;
-//    auto res = mtrx*mtrx1;
+    std::cout << mtrx1 << std::endl;
+    std::cout << mtrx*mtrx1 << std::endl;
+;
     matrix_2<8, 8, double> BB;
     gen_rand_matrix(BB, 1.1, 50.5);
     std::cout << BB << std::endl;
@@ -89,6 +121,9 @@ int main()
 //    matrix_4<4, 3, 2, 5, int> matrx4d;
 //    gen_rand_matrix(matrx4d, 1,5);
 //    std::cout << matrx4d << std::endl;
+
+    ////Lagrange
+    ///
     boost::shared_array<double> x( new double[5]);
     x[0] = 1;
     x[1] = 3;
@@ -116,5 +151,32 @@ int main()
     for(size_t i = 0; i < 5; ++i) {
         std::cout << x[i] << "\t| " << res2[i] << std::endl;
     }
+
+    ///SIMvolic Diff
+    ///
+    std::stringstream ss2;
+    hana::for_each(result, [&](auto x) {
+        if(hana::first(x) + hana::second(x) == 9)
+        ss2 << hana::first(x) << " " << hana::second(x) << "\n";
+    });
+
+    std::stringstream ss3;
+    hana::for_each(result2, [&](auto x) {
+//        if(hana::first(x) < hana::second(x))
+        ss3 << hana::first(x) << " " << hana::second(x) << "\n";
+    });
+
+    std::cout << ss2.str() << std::endl;
+    std::cout << "============================" << std::endl;
+    std::cout << ss3.str() << std::endl;
+    std::cout << "============================" << std::endl;
+    std::cout << U_st<3, 0>::first << std::endl;
+
+
+    variable xx;
+    double result = newton(xx*xx + xx , 1.1, 1000);
+    std::cout << result << '\n';
+    std::cout << "============================" << std::endl;
+    std::cout << solve_(fx_, dfx_, 1.1) << '\n';
     return 0;
 }

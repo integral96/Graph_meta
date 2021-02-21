@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(Graph  ${PROJECT_NAME} VERSION "0.0.0")
+project(Graph  ${PROJECT_NAME} VERSION "0.0.0" )
+
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -14,6 +15,7 @@ file(GLOB SOURCES
     include/lagrange_group.hpp
     include/graph.hpp
     include/matrix.hpp
+    include/simvolic_diff.hpp
     *.h.in
 
     main.cpp)
@@ -31,7 +33,7 @@ add_executable(test_version test_version.cpp)
 set_target_properties(${PROJECT_NAME} lib${PROJECT_NAME} test_version PROPERTIES
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON
-    COMPILE_OPTIONS "-Wpedantic;-Wall;-Wextra"
+    COMPILE_OPTIONS "-Wall;-Wextra"
 )
 
 set_target_properties(test_version PROPERTIES

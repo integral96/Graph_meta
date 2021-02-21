@@ -1,5 +1,4 @@
-#ifndef LAGRANGE_GROUP_HPP
-#define LAGRANGE_GROUP_HPP
+#pragma once
 
 #include <boost/shared_array.hpp>
 #include <boost/static_assert.hpp>
@@ -83,4 +82,3 @@ void LAGRANGE_RESULT(const Array& x_orig, typename Array::element_type shift, co
 }
 
 
-#endif // LAGRANGE_GROUP_HPP

@@ -1,5 +1,4 @@
-#ifndef GRAPH_HPP
-#define GRAPH_HPP
+#pragma once
 
 #include <type_traits>
 #include <boost/hana.hpp>
@@ -161,6 +160,4 @@ template<typename List, template<typename T1, typename T2> class Compare>
 struct InsertionSortT<List, Compare, true> {
     using type = List;
 };
-
-#endif // GRAPH_HPP
 
