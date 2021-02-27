@@ -2,12 +2,27 @@
 
 #include <boost/mpl/bool.hpp>
 #include <boost/mpl/at.hpp>
+#include <boost/mpl/or.hpp>
+#include <boost/mpl/if.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/vector_c.hpp>
 #include <type_traits>
-#include <boost/multi_array.hpp>
+#include <boost/type_traits/enable_if.hpp>
+#include <boost/any.hpp>
+#include <boost/hana.hpp>
+#include <boost/proto/proto.hpp>
 
 #include <array>
+#include <random>
+#include <ctime>
+#include <complex>
+
+#define _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS
+
+namespace mpl = boost::mpl;
+namespace hana = boost::hana;
+namespace proto = boost::proto;
+using boost::hana::literals::operator ""_c;
 
 #define BASE_FUNCTION_COUNT 10
 
@@ -21,6 +36,30 @@ template<>
 struct factorial<0> {
     static constexpr size_t value = 1;
 };
+
+///Met func
+///
+// is vector for multiply vfnrbx on vector
+template <typename F, size_t N, typename Vector>
+struct is_vector : boost::mpl::false_ {};
+template <typename F, size_t N>
+struct is_vector<F, N, boost::array<F, N>> : boost::mpl::true_ {
+    static constexpr size_t size = N;
+};
+template <typename F, size_t N>
+struct is_vector<F, N, std::array<F, N>> : boost::mpl::true_ {
+    static constexpr size_t size = N;
+};
+
+template<typename T> struct is_int : boost::mpl::false_ {};
+template<> struct is_int<int> : boost::mpl::true_ {};
+template<> struct is_int<unsigned> : boost::mpl::true_ {};
+template<> struct is_int<size_t> : boost::mpl::true_ {};
+
+template<typename T> struct is_complex_d : boost::mpl::false_ {};
+template<> struct is_complex_d<std::complex<double>> : boost::mpl::true_ {};
+template<typename T> struct is_complex_i : boost::mpl::false_ {};
+template<> struct is_complex_i<std::complex<int>> : boost::mpl::true_ {};
 
 ///
 ///Вычисление степени
@@ -168,3 +207,60 @@ typename Closure::value_type abstract_divide(Closure &closure) {
 
 ////Math Base && Expression && variable
 ///
+///Random init
+template<typename T, typename Matrix, typename = boost::enable_if_t<(Matrix::dimension > 0)>>
+inline void gen_rand_matrix(Matrix& A, T min, T max) {
+    std::time_t now = std::time(0);
+    std::mt19937 gen{static_cast<std::uint32_t>(now)};
+        if constexpr(Matrix::dimension == 4 && is_int<T>::value) {
+            std::uniform_int_distribution<> dist{min, max};
+            for(size_t i = 0; i < Matrix::row; ++i)
+                for(size_t j = 0; j < Matrix::col; ++j)
+                    for(size_t k = 0; k < Matrix::lin; ++k)
+                        for(size_t l = 0; l < Matrix::vol; ++l)
+                            A(i, j, k, l) = dist(gen);
+        }
+        if constexpr(Matrix::dimension == 4 && !is_int<T>::value) {
+            std::uniform_real_distribution<> dist{min, max};
+            for(size_t i = 0; i < Matrix::row; ++i)
+                for(size_t j = 0; j < Matrix::col; ++j)
+                    for(size_t k = 0; k < Matrix::lin; ++k)
+                        for(size_t l = 0; l < Matrix::vol; ++l)
+                            A(i, j, k, l) = dist(gen);
+        }
+        if constexpr(Matrix::dimension == 3 && is_int<T>::value) {
+            std::uniform_int_distribution<> dist{min, max};
+            for(size_t i = 0; i < Matrix::row; ++i)
+                for(size_t j = 0; j < Matrix::col; ++j)
+                    for(size_t k = 0; k < Matrix::lin; ++k)
+                        A(i, j, k) = dist(gen);
+        }
+        if constexpr(Matrix::dimension == 3 && !is_int<T>::value) {
+            std::uniform_real_distribution<> dist{min, max};
+            for(size_t i = 0; i < Matrix::row; ++i)
+                for(size_t j = 0; j < Matrix::col; ++j)
+                    for(size_t k = 0; k < Matrix::lin; ++k)
+                        A(i, j, k) = dist(gen);
+        }
+        if constexpr(Matrix::dimension == 2 && is_int<T>::value) {
+            std::uniform_int_distribution<> dist{min, max};
+            for(size_t i = 0; i < Matrix::row; ++i)
+                for(size_t j = 0; j < Matrix::col; ++j)
+                        A(i, j) = dist(gen);
+        }
+        if constexpr(Matrix::dimension == 2 && !is_int<T>::value) {
+            std::uniform_real_distribution<> dist{min, max};
+            for(size_t i = 0; i < Matrix::row; ++i)
+                for(size_t j = 0; j < Matrix::col; ++j)
+                        A(i, j) = dist(gen);
+        }
+}
+template<size_t N, typename T, typename Array, typename = boost::enable_if_t<std::is_same_v<Array, boost::array<T, N>>>>
+inline void gen_rand_array(Array& A, T min, T max) {
+    std::time_t now = std::time(0);
+    std::mt19937 gen{static_cast<std::uint32_t>(now)};
+    std::uniform_real_distribution<> dist{min, max};
+    for(size_t i = 0; i < N; ++i)
+            A[i] = dist(gen);
+}
+

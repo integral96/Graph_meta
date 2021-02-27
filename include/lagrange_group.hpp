@@ -2,6 +2,8 @@
 
 #include <boost/shared_array.hpp>
 #include <boost/static_assert.hpp>
+#include <boost/noncopyable.hpp>
+#include <boost/array.hpp>
 
 #include <iostream>
 
@@ -11,7 +13,7 @@
 template <size_t K, size_t N, class Array>
 struct PHI_COEF /// i == 0,...,K // i == K + 1, ..., N
 {
-    using value_type = typename Array::element_type;
+    using value_type = typename Array::value_type;
 private:
     const Array& x_index;
     value_type x_orig;
@@ -29,7 +31,7 @@ public:
 template <size_t K, size_t N, class Array>
 class LAGRANGE_PHI
 {
-    using value_type = typename Array::element_type;
+    using value_type = typename Array::value_type;
     value_type x_orig;
     const Array& x_index;
 public:
@@ -44,7 +46,7 @@ public:
 template <size_t N, class Array>
 struct LAGRANGE_MEM
 {
-    using value_type = typename Array::element_type;
+    using value_type = typename Array::value_type;
 private:
     const Array& y_;
     value_type x_orig;
@@ -62,7 +64,7 @@ public:
 template<class Array>
 struct RESULT {
 
-    using value_type = typename Array::element_type;
+    using value_type = typename Array::value_type;
     const Array& y_;
     const Array& x_index;
     value_type x_orig;
@@ -76,8 +78,63 @@ struct RESULT {
     }
 };
 template<size_t N, class Array>
-typename Array::element_type LAGRANGE_RESULT(typename Array::element_type x_orig, typename Array::element_type shift,
+typename Array::value_type LAGRANGE_RESULT(typename Array::value_type x_orig, typename Array::value_type shift,
     const Array& x_index, const Array& y) {
     RESULT<Array> closure(x_orig, shift, x_index, y);
     return closure.template value<N>();
 }
+
+template<size_t N>
+class coordinates_set  : boost::noncopyable {
+public:
+    using value_type = double;
+    using type_array = boost::array<value_type, N>;
+    using type_pair  = boost::array<std::pair<value_type, value_type>, N>;
+private:
+    value_type X_range_min, Y_range_min, X_range_max, Y_range_max;
+    type_array X;
+    type_array Y;
+    type_pair XY;
+public:
+    explicit coordinates_set(value_type x_min, value_type x_max, value_type y_min, value_type y_max) :
+                                X_range_min(x_min), X_range_max(x_max), Y_range_min(y_min), Y_range_max(y_max) {}
+    void init_X() {
+        gen_rand_array<N, value_type, type_array>(X, X_range_min, X_range_max);
+    }
+    void init_Y() {
+        gen_rand_array<N>(Y, Y_range_min, Y_range_max);
+    }
+    void init_XY() {
+        for(size_t i = 0; i < N; ++i) {
+            XY[i] = std::make_pair(X[i], Y[i]);
+        }
+    }
+    //
+    const type_array& get_X() const {
+        return X;
+    }
+    const type_array& get_Y() const {
+        return Y;
+    }
+    const type_pair& get_XY() const {
+        return XY;
+    }
+    //print
+    void print() {
+        std::cout << "X = {";
+        for(const auto& x : X) {
+            std::cout << x << ", ";
+        }
+        std::cout << "}" << std::endl;
+        std::cout << "Y = {";
+        for(const auto& y : Y) {
+            std::cout << y << ", ";
+        }
+        std::cout << "}" << std::endl;
+        std::cout << "XY_set = {";
+        for(const auto& xy : XY) {
+            std::cout << "(" << xy.first << ", " << xy.second << "), ";
+        }
+        std::cout << "}" << std::endl;
+    }
+};

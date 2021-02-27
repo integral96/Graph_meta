@@ -4,6 +4,7 @@
 #include <sstream>
 #include <array>
 #include <functional>
+#include <thread>
 
 #include <boost/timer/timer.hpp>
 
@@ -97,14 +98,14 @@ int main()
 //    ///
 ////Lagrange
 ///
-    boost::shared_array<double> x(new double[5]);
+    boost::array<double, 5> x;
     x[0] = 1;
     x[1] = 3;
     x[2] = 5;
     x[3] = 7;
     x[4] = 9;
 
-    boost::shared_array<double> y(new double[5]);
+    boost::array<double, 5> y;
     y[0] = 0;
     y[1] = 2;
     y[2] = -1;
@@ -121,6 +122,12 @@ int main()
     for (double i = 0.; i < 25; i += .25) {
         std::cout << i << "\t| " << LAGRANGE_RESULT<5>(i, dx, x, y) << std::endl;
     }
+    coordinates_set<25> solver(-16.3, 15.8, -15.6, 15.2);
+    solver.init_X();
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    solver.init_Y();
+    solver.init_XY();
+    solver.print();
 
 //    ///SIMvolic Diff
 //    ///
