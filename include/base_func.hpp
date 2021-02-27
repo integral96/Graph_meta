@@ -166,3 +166,5 @@ typename Closure::value_type abstract_divide(Closure &closure) {
     return my_closure.result;
 }
 
+////Math Base && Expression && variable
+///

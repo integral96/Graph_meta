@@ -132,7 +132,7 @@ public:
             }
         }
     }
-    void fill(const double x) {
+    void fill(T x) {
         for (size_t i = 0; i < N; ++i)
             for (size_t j = 0; j < M; ++j) MTRX[i][j] = x;
     }
