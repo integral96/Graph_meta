@@ -61,6 +61,7 @@ public:
     }
 };
 
+///Version gibrid
 template<class Array>
 struct RESULT {
 
@@ -82,6 +83,31 @@ typename Array::value_type LAGRANGE_RESULT(typename Array::value_type x_orig, ty
     const Array& x_index, const Array& y) {
     RESULT<Array> closure(x_orig, shift, x_index, y);
     return closure.template value<N>();
+}
+///Version meta
+template<size_t N, class Array, class Array_res>
+struct RESULT_M {
+    static_assert (std::is_same_v<typename Array::value_type, typename Array_res::value_type>, " не совпадение типов");
+    using value_type = typename std::enable_if_t<std::is_same_v<typename Array::value_type, typename Array_res::value_type>,
+                                typename Array::value_type>;
+    const Array& y_index;
+    const Array& x_index;
+    Array_res& x_orig;
+    Array_res& y_result;
+    value_type shift;
+    RESULT_M(Array_res& x_orig, value_type shift, Array_res& y_result, const Array& x_index, const Array& y_index) :
+        x_index(x_index), y_index(y_index), x_orig(x_orig), shift(shift), y_result(y_result) {}
+    template<size_t I>
+    void apply() {
+        LAGRANGE_MEM<N, Array> closure(y_index, x_orig[I] + shift, x_index);
+        y_result[I] = abstract_sums<N>(closure);
+    }
+};
+template<size_t N, size_t M, class Array, class Array_res,
+         typename = std::enable_if_t<std::is_same_v<typename Array::value_type, typename Array_res::value_type>>>
+void LAGRANGE_RESULT_M(Array_res& x_orig, typename Array::value_type shift, Array_res& y_result, const Array& x_index, const Array& y_index) {
+    RESULT_M<N, Array, Array_res> closure(x_orig, shift, y_result, x_index, y_index);
+    meta_loop<M>(closure);
 }
 
 template<size_t N>

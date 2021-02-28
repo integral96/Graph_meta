@@ -112,6 +112,11 @@ int main()
     y[3] = 1;
     y[4] = 3;
 
+    boost::array<double, 50> x_orig;
+    boost::array<double, 50> y_orig;
+    for(int i = 0; i < 50; ++i) {
+        x_orig[i] = double(i);
+    }
 
     for (double i = 0.; i < 25; i += .25) {
         std::cout << i << "\t| " << LAGRANGE_RESULT<5>(i, .0, x, y) << std::endl;
@@ -122,6 +127,12 @@ int main()
     for (double i = 0.; i < 25; i += .25) {
         std::cout << i << "\t| " << LAGRANGE_RESULT<5>(i, dx, x, y) << std::endl;
     }
+    std::cout << "MEta =====================" << std::endl;
+    LAGRANGE_RESULT_M<5, 50>(x_orig, .0, y_orig, x, y);
+    for(int i = 0; i < 50; ++i) {
+        std::cout << x_orig[i] << "\t| " << y_orig[i] << std::endl;
+    }
+
     coordinates_set<25> solver(-16.3, 15.8, -15.6, 15.2);
     solver.init_X();
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
