@@ -16,6 +16,8 @@
 #include <random>
 #include <ctime>
 #include <complex>
+#include <chrono>
+#include <thread>
 
 #define _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS
 
@@ -256,9 +258,12 @@ inline void gen_rand_matrix(Matrix& A, T min, T max) {
         }
 }
 template<size_t N, typename T, typename Array, typename = boost::enable_if_t<std::is_same_v<Array, boost::array<T, N>>>>
-inline void gen_rand_array(Array& A, T min, T max) {
-    std::time_t now = std::time(0);
-    std::mt19937 gen{static_cast<std::uint32_t>(now)};
+inline void gen_rand_array(Array& A, T min, T max, int n = 0) {
+    auto start = std::chrono::system_clock::now();
+    std::this_thread::sleep_for(std::chrono::milliseconds(n));
+    auto end = std::chrono::system_clock::now();
+    std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+    std::mt19937 gen{static_cast<std::uint32_t>(end_time)};
     std::uniform_real_distribution<> dist{min, max};
     for(size_t i = 0; i < N; ++i)
             A[i] = dist(gen);

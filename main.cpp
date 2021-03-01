@@ -58,7 +58,7 @@ static auto dfx_([](auto x) ->double { // производная функции
 });
 
 template<class Func1, class Func2>
-auto solve_(const Func1& fx, const Func2& dfx, double x0) {
+auto gsolve_(const Func1& fx, const Func2& dfx, double x0) {
     double x1  = x0 - fx(x0)/dfx(x0); // первое приближение
 
     while (std::abs(x1-x0)>eps) { // пока не достигнута точность 0.000001
@@ -98,47 +98,46 @@ int main()
 //    ///
 ////Lagrange
 ///
-    boost::array<double, 5> x;
-    x[0] = 1;
-    x[1] = 3;
-    x[2] = 5;
-    x[3] = 7;
-    x[4] = 9;
+//    boost::array<double, 5> x;
+//    x[0] = 1;
+//    x[1] = 3;
+//    x[2] = 5;
+//    x[3] = 7;
+//    x[4] = 9;
 
-    boost::array<double, 5> y;
-    y[0] = 0;
-    y[1] = 2;
-    y[2] = -1;
-    y[3] = 1;
-    y[4] = 3;
+//    boost::array<double, 5> y;
+//    y[0] = 0;
+//    y[1] = 2;
+//    y[2] = -1;
+//    y[3] = 1;
+//    y[4] = 3;
 
-    boost::array<double, 50> x_orig;
-    boost::array<double, 50> y_orig;
-    for(int i = 0; i < 50; ++i) {
-        x_orig[i] = double(i);
+//    boost::array<double, 50> x_orig;
+//    boost::array<double, 50> y_orig;
+//    for(int i = 0; i < 50; ++i) {
+//        x_orig[i] = double(i);
+//    }
+
+//    for (double i = 0.; i < 25; i += .25) {
+//        std::cout << i << "\t| " << LAGRANGE_RESULT<5>(i, .0, x, y) << std::endl;
+//    }
+//    std::cout << "=====================" << std::endl;
+//    double dx = 1;
+
+//    for (double i = 0.; i < 25; i += .25) {
+//        std::cout << i << "\t| " << LAGRANGE_RESULT<5>(i, dx, x, y) << std::endl;
+//    }
+//    std::cout << "MEta =====================" << std::endl;
+//    LAGRANGE_RESULT_M<5, 50>(x_orig, .0, y_orig, x, y);
+//    for(int i = 0; i < 50; ++i) {
+//        std::cout << x_orig[i] << "\t| " << y_orig[i] << std::endl;
+//    }
+    std::cout << "Random =====================" << std::endl;
+    LAGRANG_SET<10, 50> result_lag(-16., 16., -16., 16., 0.);
+    for(const auto& x : result_lag.get_RES()) {
+        std::cout << x.first << "\t| " << x.second << std::endl;
     }
 
-    for (double i = 0.; i < 25; i += .25) {
-        std::cout << i << "\t| " << LAGRANGE_RESULT<5>(i, .0, x, y) << std::endl;
-    }
-    std::cout << "=====================" << std::endl;
-    double dx = 1;
-
-    for (double i = 0.; i < 25; i += .25) {
-        std::cout << i << "\t| " << LAGRANGE_RESULT<5>(i, dx, x, y) << std::endl;
-    }
-    std::cout << "MEta =====================" << std::endl;
-    LAGRANGE_RESULT_M<5, 50>(x_orig, .0, y_orig, x, y);
-    for(int i = 0; i < 50; ++i) {
-        std::cout << x_orig[i] << "\t| " << y_orig[i] << std::endl;
-    }
-
-    coordinates_set<25> solver(-16.3, 15.8, -15.6, 15.2);
-    solver.init_X();
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    solver.init_Y();
-    solver.init_XY();
-    solver.print();
 
 //    ///SIMvolic Diff
 //    ///
